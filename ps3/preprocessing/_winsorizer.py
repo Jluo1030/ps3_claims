@@ -10,11 +10,11 @@ class Winsorizer(BaseEstimator, TransformerMixin):
         self.lower_quantile = lower_quantile
 
     def fit(self, X, y=None):
-        self.upper_quantile_ = np.quantile(X, self.upper_quantile * 100)
-        self.lower_quantile_ = np.quantile(X, self.lower_quantile * 100)
+        self.upper_quantile_ = np.quantile(X, self.upper_quantile)
+        self.lower_quantile_ = np.quantile(X, self.lower_quantile)
         return self
 
     def transform(self, X):
-        X = np.array(X)
+        X = np.asarray(X)
         X_clipped = np.clip(X, self.lower_quantile_, self.upper_quantile_)
         return X_clipped
