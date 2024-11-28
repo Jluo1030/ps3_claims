@@ -23,13 +23,13 @@ def create_sample_split(df, id_column, training_frac=0.8):
     pd.DataFrame
         Training data with sample column containing train/test split based on IDs.
     """
-    sample_size = int(len(df) * 0.8)
-    id_hash = [hashlib.md5(str(df[id_column].iloc[i]).encode("utf-8")).hexdigest() for i in range(len(df))]
-    random_id = random.sample(id_hash, sample_size)
-    for i in range(len(df)):
-        if hashlib.md5(str(df[id_column].iloc[i]).encode("utf-8")).hexdigest() in id_hash:
-            df['sample'].iloc[i] = "train"
-        else:
-            df['sample'].iloc[i] = "test"
+    if df[id_column].dtype == np.int64:
+        modulo = df[id_column] % 100
+    else:
+        modulo = df[id_column].apply(
+            lambda x: int(hashlib.md5(str(x).encode()).hexdigest(), 16) % 100
+        )
+
+    df["sample"] = np.where(modulo < training_frac * 100, "train", "test")
 
     return df

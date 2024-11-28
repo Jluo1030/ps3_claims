@@ -26,7 +26,7 @@ y = df["PurePremium"]
 
 
 # TODO: use your create_sample_split function here
-# df = create_sample_split(...)
+df = create_sample_split(df, id_column='IDpol', training_frac=0.8)
 train = np.where(df["sample"] == "train")
 test = np.where(df["sample"] == "test")
 df_train = df.iloc[train].copy()
@@ -87,15 +87,27 @@ print(
 # Let's put together a pipeline
 numeric_cols = ["BonusMalus", "Density"]
 preprocessor = ColumnTransformer(
-    transformers=[
         # TODO: Add numeric transforms here
+    transformers=[
+        (
+            "numeric",
+            Pipeline(
+                [
+                    ("scale", StandardScaler()),
+                    ("spline", SplineTransformer(include_bias=False, knots="quantile")),
+                ]
+            ),
+            numeric_cols,
+        ),
         ("cat", OneHotEncoder(sparse_output=False, drop="first"), categoricals),
     ]
 )
 preprocessor.set_output(transform="pandas")
-model_pipeline = Pipeline(
+model_pipeline = Pipeline(steps = [
     # TODO: Define pipeline steps here
-)
+    ('preprocessor', preprocessor),
+    ('regressor', GeneralizedLinearRegressor(family=TweedieDist, l1_ratio=1, fit_intercept=True))
+])
 
 # let's have a look at the pipeline
 model_pipeline
